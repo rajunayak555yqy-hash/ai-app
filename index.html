@@ -1268,7 +1268,7 @@ function sendMsg() {
 async function orderFood(itemName, itemPrice) {
 
   const response = await fetch(
-    "http://localhost:3000/order",
+    "https://ai-canteen.onrender.com/order",
     {
       method: "POST",
 
@@ -1304,7 +1304,7 @@ async function askAI() {
     document.getElementById("aiInput").value;
 
   const response = await fetch(
-    "http://localhost:3000/ai",
+    "https://ai-canteen.onrender.com/menu",
     {
       method: "POST",
 
