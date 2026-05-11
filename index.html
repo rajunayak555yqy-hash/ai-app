@@ -1362,6 +1362,60 @@ function sendMsg() {
   document.getElementById('cf-email').value='';
   document.getElementById('cf-msg').value='';
 }
+  function login(){
+
+  const role =
+    document.getElementById("role").value;
+
+  const username =
+    document.getElementById("username").value;
+
+  const password =
+    document.getElementById("password").value;
+
+  // STUDENT
+  if(
+      role === "student" &&
+      username === "student" &&
+      password === "student123"
+    ){
+
+      document.getElementById(
+        "loginOverlay"
+      ).style.display = "none";
+  }
+
+  // FACULTY
+  else if(
+      role === "faculty" &&
+      username === "faculty" &&
+      password === "faculty123"
+    ){
+
+      document.getElementById(
+        "loginOverlay"
+      ).style.display = "none";
+  }
+
+  // ADMIN
+  else if(
+      role === "admin" &&
+      username === "admin" &&
+      password === "admin123"
+    ){
+
+      window.location.href =
+      "admin.html";
+  }
+
+  else{
+
+      document.getElementById(
+        "error"
+      ).innerHTML =
+      "Invalid Credentials";
+  }
+}
 </script>
 <script>
 
