@@ -14,8 +14,8 @@ const menu = [
   { name: "Coffee", price: 30 }
 ];
 
-app.get("/menu", (req, res) => {
-  res.json(menu);
+app.get("/", (req, res) => {
+  res.send("AI Canteen Server is Running");
 });
 app.post("/order", (req, res) => {
 
