@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusBite AI – Smart Campus Food Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:        #050810;
+    --bg2:       #090d1a;
+    --surface:   rgba(255,255,255,0.04);
+    --border:    rgba(255,255,255,0.08);
+    --cyan:      #00e5ff;
+    --violet:    #7c3aed;
+    --pink:      #f0abfc;
+    --green:     #22d3a5;
+    --orange:    #fb923c;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --radius:    18px;
+    --glow-c:    0 0 24px rgba(0,229,255,0.35);
+    --glow-v:    0 0 24px rgba(124,58,237,0.4);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+  h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+  a { text-decoration: none; color: inherit; }
+  img { max-width: 100%; }
+  ::selection { background: var(--cyan); color: #000; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 9px; }
+
+  /* ── LOADER ── */
+  #loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px;
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; }
+  .loader-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .loader-bar {
+    width: 200px; height: 3px;
+    background: var(--surface); border-radius: 9px; overflow: hidden;
+  }
+  .loader-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    border-radius: 9px;
+    animation: fillBar 1.8s ease forwards;
+  }
+  @keyframes fillBar { from { width: 0; } to { width: 100%; } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 0 5%;
+    height: 68px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(5,8,16,0.7);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    transition: box-shadow .3s;
+  }
+  nav.scrolled { box-shadow: 0 4px 40px rgba(0,0,0,0.5); }
+  .nav-brand {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -.5px;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: .9rem; font-weight: 500; color: var(--muted);
+    transition: color .2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1.5px;
+    background: var(--cyan); transition: width .3s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta {
+    padding: .45rem 1.2rem; border-radius: 50px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .85rem;
+    color: #fff !important;
+    box-shadow: var(--glow-c);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .nav-cta:hover { transform: scale(1.06); box-shadow: 0 0 36px rgba(0,229,255,0.5); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: .3s; }
+  .mobile-menu {
+    display: none; position: fixed; top: 68px; left: 0; right: 0; z-index: 99;
+    background: rgba(9,13,26,0.97); backdrop-filter: blur(20px);
+    padding: 1.5rem 5%; flex-direction: column; gap: 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a { font-size: 1rem; color: var(--text); }
+
+  /* ── HERO ── */
+  #home {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 100px 5% 60px;
+    position: relative; overflow: hidden;
+    text-align: center;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,229,255,0.1) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 20% 70%, rgba(240,171,252,0.08) 0%, transparent 60%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at center, black 0%, transparent 100%);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .35rem 1rem; border-radius: 50px;
+    border: 1px solid rgba(0,229,255,0.3);
+    background: rgba(0,229,255,0.07);
+    font-size: .8rem; font-weight: 500; color: var(--cyan);
+    margin-bottom: 1.5rem;
+    animation: fadeUp .7s ease both;
+  }
+  .hero-badge span { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:.2; } }
+  .hero-h1 {
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -1.5px;
+    margin-bottom: 1.2rem;
+    animation: fadeUp .7s .15s ease both;
+  }
+  .hero-h1 .grad {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 50%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-sub {
+    font-size: 1.05rem; color: var(--muted); max-width: 580px; margin: 0 auto 2.2rem;
+    animation: fadeUp .7s .3s ease both;
+  }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp .7s .45s ease both; }
+  .btn-glow {
+    padding: .8rem 2.2rem; border-radius: 50px; border: none; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff; box-shadow: 0 0 30px rgba(0,229,255,0.4);
+    transition: transform .25s, box-shadow .25s;
+    position: relative; overflow: hidden;
+  }
+  .btn-glow::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%) skewX(-20deg);
+    transition: transform .5s;
+  }
+  .btn-glow:hover::before { transform: translateX(200%) skewX(-20deg); }
+  .btn-glow:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 0 50px rgba(0,229,255,0.6); }
+  .btn-outline {
+    padding: .8rem 2rem; border-radius: 50px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+    color: var(--text); cursor: pointer;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.05); }
+  .hero-stats {
+    display: flex; gap: 3rem; justify-content: center; margin-top: 3.5rem;
+    animation: fadeUp .7s .6s ease both;
+    flex-wrap: wrap;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-stat .lbl { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+  .floating-foods {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .food-dot {
+    position: absolute; border-radius: 50%; filter: blur(1px);
+    animation: floatDot linear infinite;
+    opacity: .6;
+  }
+  @keyframes floatDot {
+    0%   { transform: translateY(0) rotate(0deg); opacity: .6; }
+    50%  { opacity: .9; }
+    100% { transform: translateY(-80vh) rotate(360deg); opacity: 0; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION COMMONS ── */
+  section { padding: 90px 5%; }
+  .section-label {
+    font-size: .75rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: .7rem;
+  }
+  .section-title {
+    font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -1px;
+    margin-bottom: 1rem;
+  }
+  .section-sub { color: var(--muted); max-width: 540px; font-size: .97rem; }
+  .section-header { margin-bottom: 3.5rem; }
+  .glass {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+  }
+
+  /* ── FEATURES ── */
+  #features { background: var(--bg2); }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1.4rem;
+  }
+  .feat-card {
+    padding: 2rem 1.8rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: transform .3s, border-color .3s, box-shadow .3s;
+    cursor: default;
+  }
+  .feat-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--cyan);
+    box-shadow: 0 8px 40px rgba(0,229,255,0.12);
+  }
+  .feat-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 1.2rem;
+  }
+  .feat-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+  .feat-card p { font-size: .88rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── MENU ── */
+  #menu { }
+  .menu-filter {
+    display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+  }
+  .filter-btn {
+    padding: .4rem 1.1rem; border-radius: 50px; border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted); font-size: .82rem; font-weight: 500;
+    cursor: pointer; transition: .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.06);
+  }
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.4rem;
+  }
+  .food-card {
+    border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--surface); overflow: hidden;
+    transition: transform .3s, box-shadow .3s;
+    position: relative;
+  }
+  .food-card:hover { transform: translateY(-6px); box-shadow: 0 12px 48px rgba(0,0,0,0.4); }
+  .food-img {
+    height: 140px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 4rem;
+    position: relative; overflow: hidden;
+  }
+  .food-badge {
+    position: absolute; top: 10px; right: 10px;
+    padding: .2rem .6rem; border-radius: 50px;
+    font-size: .7rem; font-weight: 600; letter-spacing: .5px;
+  }
+  .food-body { padding: 1.1rem 1.2rem 1.3rem; }
+  .food-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: .25rem; }
+  .food-desc { font-size: .8rem; color: var(--muted); margin-bottom: .9rem; }
+  .food-footer { display: flex; align-items: center; justify-content: space-between; }
+  .food-price { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--cyan); }
+  .add-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff; font-size: 1.3rem; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 12px rgba(0,229,255,0.3);
+  }
+  .add-btn:hover { transform: scale(1.2); box-shadow: 0 0 22px rgba(0,229,255,0.55); }
+  .add-btn.added { background: var(--green); box-shadow: 0 0 12px rgba(34,211,165,0.4); }
+
+  /* ── CART TOAST ── */
+  #cart-toast {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 500;
+    padding: 1rem 1.6rem; border-radius: var(--radius);
+    background: rgba(9,13,26,0.95); border: 1px solid rgba(0,229,255,0.25);
+    backdrop-filter: blur(20px); box-shadow: 0 8px 40px rgba(0,0,0,0.5), var(--glow-c);
+    display: flex; align-items: center; gap: 1rem;
+    transform: translateY(120px) scale(.9); opacity: 0;
+    transition: transform .4s cubic-bezier(.175,.885,.32,1.275), opacity .4s;
+    min-width: 260px;
+  }
+  #cart-toast.show { transform: translateY(0) scale(1); opacity: 1; }
+  .cart-icon { font-size: 1.8rem; }
+  .cart-info { flex: 1; }
+  .cart-info strong { font-family: 'Syne', sans-serif; font-size: .95rem; }
+  .cart-info small { display: block; color: var(--muted); font-size: .78rem; }
+  .cart-checkout {
+    padding: .4rem 1rem; border-radius: 50px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff; font-size: .8rem; font-weight: 600; font-family: 'Syne', sans-serif;
+    transition: transform .2s;
+  }
+  .cart-checkout:hover { transform: scale(1.05); }
+
+  /* ── AI SECTION ── */
+  #ai { background: var(--bg2); }
+  .ai-wrapper {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
+  }
+  .ai-visual {
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .ai-orb {
+    width: 280px; height: 280px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(0,229,255,0.25), rgba(124,58,237,0.15), transparent 70%);
+    border: 1px solid rgba(0,229,255,0.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem;
+    box-shadow: 0 0 60px rgba(0,229,255,0.12), 0 0 120px rgba(124,58,237,0.08);
+    animation: orbPulse 4s ease-in-out infinite;
+    position: relative;
+  }
+  @keyframes orbPulse {
+    0%,100% { box-shadow: 0 0 60px rgba(0,229,255,0.12), 0 0 120px rgba(124,58,237,0.08); }
+    50%      { box-shadow: 0 0 100px rgba(0,229,255,0.22), 0 0 180px rgba(124,58,237,0.14); }
+  }
+  .ai-ring {
+    position: absolute; border-radius: 50%; border: 1px dashed;
+    animation: spin linear infinite;
+  }
+  .ai-ring-1 { inset: -20px; border-color: rgba(0,229,255,0.15); animation-duration: 12s; }
+  .ai-ring-2 { inset: -40px; border-color: rgba(124,58,237,0.1); animation-duration: 20s; animation-direction: reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ai-chip {
+    position: absolute; padding: .4rem .9rem; border-radius: 50px;
+    background: rgba(9,13,26,0.9); border: 1px solid rgba(0,229,255,0.25);
+    font-size: .75rem; font-weight: 600; color: var(--cyan);
+    backdrop-filter: blur(8px);
+    animation: floatChip 3s ease-in-out infinite;
+  }
+  .ai-chip:nth-child(3) { top: 10%; right: 0; animation-delay: 0s; }
+  .ai-chip:nth-child(4) { bottom: 15%; left: 0; animation-delay: 1.5s; }
+  @keyframes floatChip {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+  .ai-form-area { display: flex; flex-direction: column; gap: 1.2rem; }
+  .ai-input-wrap { position: relative; }
+  .ai-input {
+    width: 100%; padding: 1rem 1.3rem; border-radius: 14px;
+    border: 1.5px solid var(--border); background: rgba(255,255,255,0.03);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .97rem;
+    outline: none; resize: none; height: 80px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .ai-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(0,229,255,0.08); }
+  .ai-input::placeholder { color: var(--muted); }
+  .ai-response {
+    padding: 1.2rem 1.4rem; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(124,58,237,0.05));
+    border: 1px solid rgba(0,229,255,0.18);
+    min-height: 80px; display: flex; gap: .8rem; align-items: flex-start;
+    opacity: 0; transform: translateY(10px);
+    transition: opacity .4s, transform .4s;
+  }
+  .ai-response.visible { opacity: 1; transform: translateY(0); }
+  .ai-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem;
+  }
+  .ai-text { font-size: .9rem; line-height: 1.6; color: var(--text); }
+  .typing-dots span {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan); margin: 0 2px;
+    animation: dot .9s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: .2s; }
+  .typing-dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes dot { 0%,80%,100% { transform: scale(.7); opacity:.5; } 40% { transform: scale(1); opacity:1; } }
+
+  /* ── DELIVERY ── */
+  #delivery {}
+  .delivery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .delivery-card {
+    padding: 2.2rem 2rem; border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(124,58,237,0.05));
+    border: 1px solid rgba(0,229,255,0.15);
+    position: relative; overflow: hidden;
+  }
+  .delivery-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(0,229,255,0.03));
+    pointer-events: none;
+  }
+  .del-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .del-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: .5rem; }
+  .del-desc { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+  .del-tag {
+    display: inline-block; margin-top: 1rem; padding: .3rem .85rem; border-radius: 50px;
+    background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25);
+    font-size: .78rem; font-weight: 600; color: var(--cyan);
+  }
+  .delivery-steps { margin-top: 3rem; }
+  .delivery-steps h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
+  .steps { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .step { display: flex; align-items: flex-start; gap: 1rem; flex: 1; min-width: 200px; }
+  .step-num {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: .9rem; color: #fff;
+    box-shadow: 0 0 16px rgba(0,229,255,0.3);
+  }
+  .step-info strong { display: block; font-size: .92rem; margin-bottom: .25rem; }
+  .step-info span { font-size: .82rem; color: var(--muted); }
+
+  /* ── IMPACT ── */
+  #impact { background: var(--bg2); }
+  .impact-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.4rem;
+  }
+  .impact-card {
+    padding: 2rem 1.5rem; border-radius: var(--radius); text-align: center;
+    border: 1px solid var(--border); background: var(--surface);
+    transition: transform .3s, border-color .3s;
+  }
+  .impact-card:hover { transform: translateY(-5px); border-color: var(--violet); }
+  .impact-icon { font-size: 2.2rem; margin-bottom: .8rem; }
+  .impact-num {
+    font-family: 'Syne', sans-serif; font-size: 2.3rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: .3rem;
+  }
+  .impact-label { font-size: .85rem; color: var(--muted); }
+
+  /* ── ORDER MODAL ── */
+  #order-modal {
+    display: none; position: fixed; inset: 0; z-index: 800;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  #order-modal.open { display: flex; }
+  .modal-box {
+    background: #0d1120; border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 24px; padding: 2.5rem; max-width: 480px; width: 100%;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+    animation: modalIn .4s cubic-bezier(.175,.885,.32,1.275);
+  }
+  @keyframes modalIn { from { transform: scale(.85) translateY(20px); opacity:0; } to { transform: scale(1) translateY(0); opacity:1; } }
+  .modal-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 1.5rem; }
+  .modal-form { display: flex; flex-direction: column; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: .4rem; }
+  .form-group label { font-size: .82rem; font-weight: 600; color: var(--muted); }
+  .form-input, .form-select {
+    padding: .7rem 1rem; border-radius: 10px; border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.03); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: .92rem; outline: none;
+    transition: border-color .2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--cyan); }
+  .form-select option { background: #0d1120; }
+  .modal-summary {
+    padding: 1rem; border-radius: 10px;
+    background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15);
+    font-size: .88rem; margin-top: .5rem;
+  }
+  .modal-summary .row { display: flex; justify-content: space-between; margin-bottom: .4rem; color: var(--muted); }
+  .modal-summary .row.total { color: var(--text); font-weight: 700; border-top: 1px solid var(--border); padding-top: .5rem; margin-top: .5rem; }
+  .modal-btns { display: flex; gap: .8rem; margin-top: 1.5rem; }
+  .modal-cancel {
+    flex: 1; padding: .75rem; border-radius: 50px; border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; font-size: .9rem;
+    transition: .2s;
+  }
+  .modal-cancel:hover { border-color: #f87171; color: #f87171; }
+  .modal-confirm {
+    flex: 2; padding: .75rem; border-radius: 50px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem;
+    box-shadow: 0 0 20px rgba(0,229,255,0.3); transition: .2s;
+  }
+  .modal-confirm:hover { transform: scale(1.02); box-shadow: 0 0 36px rgba(0,229,255,0.5); }
+  .success-msg {
+    text-align: center; padding: 2rem 0;
+    display: none; flex-direction: column; align-items: center; gap: 1rem;
+  }
+  .success-msg.show { display: flex; }
+  .success-circle {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--green), var(--cyan));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 0 30px rgba(34,211,165,0.4);
+    animation: bounceIn .5s cubic-bezier(.175,.885,.32,1.275);
+  }
+  @keyframes bounceIn { from { transform: scale(0); } to { transform: scale(1); } }
+  .success-msg h3 { font-size: 1.3rem; font-weight: 800; }
+  .success-msg p { color: var(--muted); font-size: .9rem; text-align: center; }
+  .eta-badge {
+    display: flex; align-items: center; gap: .5rem; padding: .5rem 1.2rem;
+    border-radius: 50px; background: rgba(34,211,165,0.1); border: 1px solid rgba(34,211,165,0.3);
+    color: var(--green); font-weight: 600; font-size: .9rem;
+  }
+
+  /* ── ABOUT ── */
+  #about {}
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+  .about-text p { color: var(--muted); font-size: .97rem; margin-bottom: 1rem; }
+  .about-visual {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 2rem; text-align: center;
+  }
+  .biz-model { display: flex; flex-direction: column; gap: .8rem; }
+  .biz-item {
+    display: flex; align-items: center; gap: 1rem; padding: .9rem 1.1rem;
+    border-radius: 12px; background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.1);
+  }
+  .biz-item .bi-icon { font-size: 1.4rem; width: 38px; flex-shrink: 0; text-align: center; }
+  .biz-item .bi-text strong { display: block; font-size: .9rem; margin-bottom: .15rem; }
+  .biz-item .bi-text span { font-size: .8rem; color: var(--muted); }
+
+  /* ── CONTACT ── */
+  #contact { background: var(--bg2); }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+  .contact-info { display: flex; flex-direction: column; gap: 1.2rem; }
+  .contact-chip {
+    display: flex; align-items: center; gap: .9rem;
+    padding: 1rem 1.3rem; border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: .9rem;
+  }
+  .contact-chip .cc-icon { font-size: 1.4rem; width: 34px; text-align: center; }
+  .contact-form { display: flex; flex-direction: column; gap: .9rem; }
+  .contact-form textarea {
+    padding: .8rem 1rem; border-radius: 10px; border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.03); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: .92rem; outline: none;
+    resize: vertical; min-height: 110px; transition: border-color .2s;
+  }
+  .contact-form textarea:focus { border-color: var(--cyan); }
+  .contact-form input {
+    padding: .75rem 1rem; border-radius: 10px; border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.03); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: .92rem; outline: none;
+    transition: border-color .2s;
+  }
+  .contact-form input:focus { border-color: var(--cyan); }
+  .contact-form input::placeholder, .contact-form textarea::placeholder { color: var(--muted); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #020508; border-top: 1px solid var(--border);
+    padding: 3.5rem 5% 2rem;
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2.5rem;
+    margin-bottom: 3rem;
+  }
+  .footer-brand .fb-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: .7rem;
+  }
+  .footer-brand p { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+  .footer-col h4 { font-size: .9rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .55rem; }
+  .footer-col ul li a { color: var(--muted); font-size: .85rem; transition: color .2s; }
+  .footer-col ul li a:hover { color: var(--cyan); }
+  .social-links { display: flex; gap: .7rem; margin-top: 1rem; }
+  .social-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; cursor: pointer; transition: .2s;
+  }
+  .social-btn:hover { border-color: var(--cyan); transform: translateY(-3px); }
+  .footer-bottom {
+    border-top: 1px solid var(--border); padding-top: 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-bottom p { font-size: .82rem; color: var(--muted); }
+  .hackathon-badge {
+    padding: .35rem .9rem; border-radius: 50px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(124,58,237,0.1));
+    border: 1px solid rgba(0,229,255,0.2);
+    font-size: .78rem; font-weight: 600; color: var(--cyan);
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .65s, transform .65s; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .ai-wrapper, .about-grid, .contact-grid { grid-template-columns: 1fr; }
+    .ai-visual { display: none; }
+    .delivery-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .hero-stats { gap: 1.8rem; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .modal-btns { flex-direction: column; }
+    section { padding: 60px 5%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">🍔 CampusBite AI</div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  <p style="font-size:.8rem;color:var(--muted)">Initialising AI engine…</p>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-brand">🍔 CampusBite AI</div>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#ai">AI Reco</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#menu" class="nav-cta">Order Now</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#home" onclick="closeMobile()">Home</a>
+  <a href="#menu" onclick="closeMobile()">Menu</a>
+  <a href="#ai" onclick="closeMobile()">AI Recommendation</a>
+  <a href="#about" onclick="closeMobile()">About</a>
+  <a href="#contact" onclick="closeMobile()">Contact</a>
+  <a href="#menu" class="btn-glow" style="text-align:center;padding:.7rem 1rem;border-radius:50px;" onclick="closeMobile()">Order Now</a>
+</div>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="floating-foods" id="floating-foods"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span></span> AI-Powered Campus Delivery</div>
+    <h1 class="hero-h1">Smart <span class="grad">AI Campus</span><br>Food Delivery</h1>
+    <p class="hero-sub">No more standing in long canteen queues in scorching heat or pouring rain. Order your favourite meal from your classroom or hostel and get it delivered in minutes.</p>
+    <div class="hero-btns">
+      <button class="btn-glow" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">🚀 Order Now</button>
+      <button class="btn-outline" onclick="document.getElementById('ai').scrollIntoView({behavior:'smooth'})">✨ Try AI Reco</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num" data-target="1200">0</div><div class="lbl">Students Served</div></div>
+      <div class="hero-stat"><div class="num" data-target="400">0</div><div class="lbl">Hours Saved</div></div>
+      <div class="hero-stat"><div class="num" data-target="85">0</div><div class="lbl">% Queue Reduced</div></div>
+      <div class="hero-stat"><div class="num" data-target="30">0</div><div class="lbl">Avg ETA (mins)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-header reveal">
+    <div class="section-label">Why CampusBite?</div>
+    <h2 class="section-title">Everything a Student Needs</h2>
+    <p class="section-sub">We solve the real campus problems — queues, heat, rain, and laziness — with smart tech.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal" style="--d:.1s">
+      <div class="feat-icon" style="background:rgba(0,229,255,0.12)">📱</div>
+      <h3>Online Ordering</h3>
+      <p>Browse the full canteen menu and place orders instantly from any device — no app needed.</p>
+    </div>
+    <div class="feat-card reveal" style="--d:.15s">
+      <div class="feat-icon" style="background:rgba(124,58,237,0.12)">🏠</div>
+      <h3>Hostel Delivery</h3>
+      <p>Late night cravings? Your meal comes right to your hostel room door, hot and fresh.</p>
+    </div>
+    <div class="feat-card reveal" style="--d:.2s">
+      <div class="feat-icon" style="background:rgba(240,171,252,0.12)">🏫</div>
+      <h3>Classroom Delivery</h3>
+      <p>Between lectures? Order ahead and have your food waiting when you're free — zero disruption.</p>
+    </div>
+    <div class="feat-card reveal" style="--d:.25s">
+      <div class="feat-icon" style="background:rgba(34,211,165,0.12)">🤖</div>
+      <h3>AI Food Suggestions</h3>
+      <p>Our AI reads your mood and suggests the perfect meal — healthy, comfort, or energizing.</p>
+    </div>
+    <div class="feat-card reveal" style="--d:.3s">
+      <div class="feat-icon" style="background:rgba(251,146,60,0.12)">💵</div>
+      <h3>Cash on Delivery</h3>
+      <p>No UPI, no wallet setup — just order and pay when your food arrives. Simple as that.</p>
+    </div>
+    <div class="feat-card reveal" style="--d:.35s">
+      <div class="feat-icon" style="background:rgba(0,229,255,0.12)">⏱️</div>
+      <h3>Queue Elimination</h3>
+      <p>Real-time estimated waiting time so you always know when your meal is on the way.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu">
+  <div class="section-header reveal">
+    <div class="section-label">What's Cooking</div>
+    <h2 class="section-title">Today's Menu</h2>
+    <p class="section-sub">Fresh, affordable campus favourites — from a quick chai to a full meal deal.</p>
+  </div>
+  <div class="menu-filter reveal">
+    <button class="filter-btn active" onclick="filterMenu('all',this)">All</button>
+    <button class="filter-btn" onclick="filterMenu('main',this)">Main</button>
+    <button class="filter-btn" onclick="filterMenu('snack',this)">Snacks</button>
+    <button class="filter-btn" onclick="filterMenu('drink',this)">Drinks</button>
+  </div>
+  <div class="menu-grid" id="menu-grid"></div>
+</section>
+
+<!-- AI RECOMMENDATION -->
+<section id="ai">
+  <div class="ai-wrapper">
+    <div class="ai-visual reveal">
+      <div class="ai-orb">
+        🤖
+        <div class="ai-ring ai-ring-1"></div>
+        <div class="ai-ring ai-ring-2"></div>
+        <div class="ai-chip">🧠 AI Engine</div>
+        <div class="ai-chip">⚡ Real-time</div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="section-label">Powered by AI</div>
+      <h2 class="section-title">Your Personal<br>Food Advisor</h2>
+      <p class="section-sub" style="margin-bottom:2rem">Tell our AI how you're feeling or what you want, and it'll recommend the perfect campus meal for you.</p>
+      <div class="ai-form-area">
+        <div class="ai-input-wrap">
+          <textarea class="ai-input" id="ai-input" placeholder="e.g. I want something healthy… or I'm starving after gym… or comfort food for rainy day…"></textarea>
+        </div>
+        <button class="btn-glow" onclick="getAiRec()" style="align-self:flex-start;padding:.7rem 1.8rem;font-size:.9rem">✨ Get Recommendation</button>
+        <div class="ai-response" id="ai-response">
+          <div class="ai-avatar">🤖</div>
+          <div class="ai-text" id="ai-text"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERY -->
+<section id="delivery">
+  <div class="section-header reveal">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">Delivery Details</h2>
+    <p class="section-sub">Transparent pricing, fast delivery, and total convenience across campus.</p>
+  </div>
+  <div class="delivery-grid reveal">
+    <div class="delivery-card">
+      <div class="del-icon">🏫</div>
+      <div class="del-title">Classroom Delivery</div>
+      <p class="del-desc">Select your building and room number. Our delivery partner will bring your food right to your classroom — even between lectures.</p>
+      <span class="del-tag">⏱ 20–30 min ETA</span>
+    </div>
+    <div class="delivery-card">
+      <div class="del-icon">🏠</div>
+      <div class="del-title">Hostel Delivery</div>
+      <p class="del-desc">Perfect for early mornings and late nights. Enter your hostel name and room number and relax while your food comes to you.</p>
+      <span class="del-tag">⏱ 15–25 min ETA</span>
+    </div>
+  </div>
+  <div class="delivery-steps reveal">
+    <h3>How to Order — 4 Simple Steps</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-info"><strong>Browse Menu</strong><span>Pick from our freshly updated daily menu.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-info"><strong>Choose Location</strong><span>Select classroom or hostel + room number.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-info"><strong>Confirm Order</strong><span>Review your ₹10 delivery charge + food total.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-info"><strong>Pay on Delivery</strong><span>Cash only — pay when food arrives.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact">
+  <div class="section-header reveal" style="text-align:center">
+    <div class="section-label" style="text-align:center">Our Impact</div>
+    <h2 class="section-title" style="text-align:center">Numbers That Matter</h2>
+  </div>
+  <div class="impact-grid">
+    <div class="impact-card reveal">
+      <div class="impact-icon">🎓</div>
+      <div class="impact-num counter" data-target="1200">0</div>
+      <div class="impact-label">Students Served</div>
+    </div>
+    <div class="impact-card reveal">
+      <div class="impact-icon">⏳</div>
+      <div class="impact-num counter" data-target="400">0</div>
+      <div class="impact-label">Hours of Time Saved</div>
+    </div>
+    <div class="impact-card reveal">
+      <div class="impact-icon">📉</div>
+      <div class="impact-num counter" data-target="85">0</div>
+      <div class="impact-label">% Queue Reduction</div>
+    </div>
+    <div class="impact-card reveal">
+      <div class="impact-icon">🏗️</div>
+      <div class="impact-num counter" data-target="6000">0</div>
+      <div class="impact-label">₹ Campus Contribution</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <div class="section-label">About</div>
+      <h2 class="section-title">The Problem We're Solving</h2>
+      <p>Every semester, thousands of campus students waste precious time standing in long canteen queues — under harsh summer sun or in monsoon downpours. Many simply skip meals because walking to the canteen feels too far.</p>
+      <p>CampusBite AI was built to eliminate this problem with a smart, affordable, campus-native food delivery system that runs entirely within your campus — with just one delivery partner and a brilliant AI layer.</p>
+      <p>Our model is sustainable: ₹10 delivery charge per order with ₹5 from every order going directly to campus development fund.</p>
+    </div>
+    <div class="about-visual reveal">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.3rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Business Model</h3>
+      <div class="biz-model">
+        <div class="biz-item">
+          <div class="bi-icon">💰</div>
+          <div class="bi-text"><strong>₹10 Delivery Fee</strong><span>Charged per order — covers delivery operations</span></div>
+        </div>
+        <div class="biz-item">
+          <div class="bi-icon">🏗️</div>
+          <div class="bi-text"><strong>₹5 Campus Fund</strong><span>5 rupees per order contributed to development</span></div>
+        </div>
+        <div class="biz-item">
+          <div class="bi-icon">🛵</div>
+          <div class="bi-text"><strong>Single Delivery Partner</strong><span>One agent covers the entire campus efficiently</span></div>
+        </div>
+        <div class="biz-item">
+          <div class="bi-icon">🤝</div>
+          <div class="bi-text"><strong>Canteen Partnership</strong><span>Direct integration with campus canteen</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-header reveal">
+    <div class="section-label">Get In Touch</div>
+    <h2 class="section-title">Contact Us</h2>
+    <p class="section-sub">Partnering with a canteen or have feedback? We'd love to hear from you.</p>
+  </div>
+  <div class="contact-grid">
+    <div class="contact-info reveal">
+      <div class="contact-chip"><span class="cc-icon">📍</span><span><strong>Campus Location</strong><br><small style="color:var(--muted)">Main Canteen, Ground Floor</small></span></div>
+      <div class="contact-chip"><span class="cc-icon">📞</span><span><strong>+91 98765 43210</strong><br><small style="color:var(--muted)">Mon–Sat, 8am–8pm</small></span></div>
+      <div class="contact-chip"><span class="cc-icon">📧</span><span><strong>hello@campusbite.in</strong><br><small style="color:var(--muted)">Response within 24h</small></span></div>
+      <div class="contact-chip"><span class="cc-icon">⏰</span><span><strong>Delivery Hours</strong><br><small style="color:var(--muted)">8:00 AM – 9:00 PM daily</small></span></div>
+    </div>
+    <div class="contact-form reveal">
+      <input type="text" placeholder="Your Name" id="cf-name">
+      <input type="email" placeholder="Email Address" id="cf-email">
+      <textarea placeholder="Your message…" id="cf-msg"></textarea>
+      <button class="btn-glow" onclick="sendMsg()" style="padding:.8rem;font-size:.92rem">Send Message →</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="fb-logo">🍔 CampusBite AI</div>
+      <p>Smart AI-powered campus food delivery. Eliminating queues, saving time, and feeding futures — one order at a time.</p>
+      <div class="social-links">
+        <div class="social-btn" title="Instagram">📸</div>
+        <div class="social-btn" title="Twitter">🐦</div>
+        <div class="social-btn" title="LinkedIn">💼</div>
+        <div class="social-btn" title="WhatsApp">💬</div>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Navigate</h4>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#ai">AI Recommendation</a></li>
+        <li><a href="#delivery">Delivery</a></li>
+        <li><a href="#impact">Impact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Track Order</a></li>
+        <li><a href="#">Refund Policy</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#">Partner With Us</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Cookie Policy</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 CampusBite AI · Built with ❤️ by <strong style="color:var(--cyan)">Team PixelForge</strong></p>
+    <div class="hackathon-badge">🏆 Smart India Hackathon 2025</div>
+  </div>
+</footer>
+
+<!-- CART TOAST -->
+<div id="cart-toast">
+  <div class="cart-icon">🛒</div>
+  <div class="cart-info">
+    <strong id="toast-title">Burger added!</strong>
+    <small id="toast-sub">Cart total: ₹0 + ₹10 delivery</small>
+  </div>
+  <button class="cart-checkout" onclick="openModal()">Checkout</button>
+</div>
+
+<!-- ORDER MODAL -->
+<div id="order-modal">
+  <div class="modal-box">
+    <div id="modal-form-area">
+      <div class="modal-title">🛍️ Place Your Order</div>
+      <div class="modal-form">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" class="form-input" id="m-name" placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+          <label>Delivery Location</label>
+          <select class="form-select" id="m-loc">
+            <option value="">Select location type</option>
+            <option value="classroom">🏫 Classroom</option>
+            <option value="hostel">🏠 Hostel</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Room / Block Number</label>
+          <input type="text" class="form-input" id="m-room" placeholder="e.g. CS Block, Room 204 or H3-112">
+        </div>
+        <div class="modal-summary" id="modal-summary"></div>
+        <div class="modal-btns">
+          <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+          <button class="modal-confirm" onclick="confirmOrder()">Confirm & Pay on Delivery 💵</button>
+        </div>
+      </div>
+    </div>
+    <div class="success-msg" id="success-msg">
+      <div class="success-circle">✓</div>
+      <h3>Order Placed!</h3>
+      <p>Your food is being prepared and will be delivered shortly.</p>
+      <div class="eta-badge">⏱ Estimated arrival: <strong id="eta-time">25–35 mins</strong></div>
+      <button class="btn-glow" onclick="closeModal()" style="margin-top:.5rem;padding:.65rem 1.8rem;font-size:.88rem">Back to Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const foods = [
+  { id:1, name:"Classic Burger", price:60, emoji:"🍔", cat:"main",  desc:"Juicy patty, fresh veggies, brioche bun", badge:"Popular", badgeColor:"rgba(0,229,255,0.15)", badgeText:"var(--cyan)" },
+  { id:2, name:"Veg Pizza",      price:80, emoji:"🍕", cat:"main",  desc:"Hand-tossed base, loaded toppings",       badge:"Chef's Pick", badgeColor:"rgba(124,58,237,0.15)", badgeText:"var(--pink)" },
+  { id:3, name:"Club Sandwich",  price:50, emoji:"🥪", cat:"snack", desc:"Toasted, layered, satisfying",           badge:"Healthy", badgeColor:"rgba(34,211,165,0.15)", badgeText:"var(--green)" },
+  { id:4, name:"Hot Coffee",     price:30, emoji:"☕", cat:"drink", desc:"Fresh-brewed, strong and smooth",        badge:"", badgeColor:"", badgeText:"" },
+  { id:5, name:"Fresh Juice",    price:40, emoji:"🥤", cat:"drink", desc:"Cold-pressed, seasonal fruits",          badge:"Fresh", badgeColor:"rgba(251,146,60,0.15)", badgeText:"var(--orange)" },
+  { id:6, name:"Crispy Fries",   price:35, emoji:"🍟", cat:"snack", desc:"Golden, salted, extra crispy",           badge:"", badgeColor:"", badgeText:"" },
+  { id:7, name:"Masala Dosa",    price:55, emoji:"🫓", cat:"main",  desc:"South Indian classic, crispy & tangy",  badge:"Bestseller", badgeColor:"rgba(251,146,60,0.15)", badgeText:"var(--orange)" },
+  { id:8, name:"Chai",           price:15, emoji:"🍵", cat:"drink", desc:"Campus special adrak chai",              badge:"", badgeColor:"", badgeText:"" },
+];
+
+const aiRecs = {
+  healthy:   "Try the **Club Sandwich + Fresh Juice** combo — low calories, high protein, and packed with vitamins. Perfect for staying focused! 🥪🥤",
+  snacks:    "You need the **Classic Burger + Crispy Fries** combo — hearty, filling, and under ₹100. Order both and crush that hunger! 🍔🍟",
+  brakfast:     "When energy dips, grab a **Hot Coffee + Masala Dosa** — caffeine boost + complex carbs to keep you going till evening. ☕🫓",
+  rainy:     "Rainy day vibes call for **Masala Chai + Veg Pizza** — warm, cosy, and absolutely perfect. Order from your hostel and stay dry! 🍵🍕",
+  study:     "Power study session? Go for *coffee + cookies** — brain food combo that keeps you alert without the crash. ☕🍪",
+  non veg:     "Short break? Order **Chicken biriyani +kadai** — arrives in 15 mins, zero mess, easy to eat between lectures. 🍗🍛",
+  veg:   "Based on today's top picks, I recommend the *panner rice + panner machurian** combo — balanced meal, fast delivery, and most ordered today! 🥗🍝",
+
+};
+
+const cart = [];
+let currentFood = null;
+
+// ── LOADER ──
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 2000);
+});
+
+// ── NAV SCROLL ──
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ── HAMBURGER ──
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+function closeMobile() { document.getElementById('mobile-menu').classList.remove('open'); }
+
+// ── FLOATING FOOD PARTICLES ──
+const foodEmojis = ['🍔','🍕','🥪','☕','🥤','🍟','🍵','🫓','🍩','🥗'];
+const ff = document.getElementById('floating-foods');
+for(let i=0;i<18;i++){
+  const d = document.createElement('div');
+  d.className = 'food-dot';
+  const size = Math.random()*20+12;
+  d.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    animation-duration:${Math.random()*10+8}s;
+    animation-delay:${Math.random()*6}s;
+    font-size:${size*.8}px;
+    background:none;
+    display:flex;align-items:center;justify-content:center;
+  `;
+  d.textContent = foodEmojis[Math.floor(Math.random()*foodEmojis.length)];
+  ff.appendChild(d);
+}
+
+// ── HERO COUNTER ANIMATION ──
+function animateValue(el, target) {
+  let start = 0;
+  const dur = 1800;
+  const step = timestamp => {
+    if(!start) start = timestamp;
+    const progress = Math.min((timestamp - start)/dur, 1);
+    const ease = 1 - Math.pow(1-progress, 3);
+    el.textContent = Math.floor(ease*target).toLocaleString();
+    if(progress < 1) requestAnimationFrame(step);
+    else el.textContent = target.toLocaleString();
+  };
+  requestAnimationFrame(step);
+}
+
+// ── SCROLL REVEAL ──
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      e.target.classList.add('visible');
+      // animate counters
+      e.target.querySelectorAll('.counter, [data-target]').forEach(el => {
+        if(!el.dataset.animated) {
+          el.dataset.animated = '1';
+          animateValue(el, parseInt(el.dataset.target));
+        }
+      });
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => {
+  if(el.style.getPropertyValue('--d')) el.style.transitionDelay = el.style.getPropertyValue('--d');
+  revealObserver.observe(el);
+});
+
+// Hero stat counters observe
+const heroSection = document.getElementById('home');
+const heroObserver = new IntersectionObserver(entries => {
+  if(entries[0].isIntersecting) {
+    document.querySelectorAll('.hero-stat .num[data-target]').forEach(el => {
+      if(!el.dataset.animated) { el.dataset.animated='1'; animateValue(el, parseInt(el.dataset.target)); }
+    });
+  }
+}, { threshold: 0.4 });
+heroObserver.observe(heroSection);
+
+// ── RENDER MENU ──
+function renderMenu(filter='all') {
+  const grid = document.getElementById('menu-grid');
+  const items = filter==='all' ? foods : foods.filter(f=>f.cat===filter);
+  grid.innerHTML = items.map(f => `
+    <div class="food-card" data-id="${f.id}">
+      <div class="food-img" style="background:linear-gradient(135deg,rgba(${Math.floor(Math.random()*80+40)},${Math.floor(Math.random()*80+40)},${Math.floor(Math.random()*80+40)},.25),rgba(0,0,0,.3))">
+        <span style="filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))">${f.emoji}</span>
+        ${f.badge ? `<span class="food-badge" style="background:${f.badgeColor};color:${f.badgeText};border:1px solid ${f.badgeText}">${f.badge}</span>`:''}
+      </div>
+      <div class="food-body">
+        <div class="food-name">${f.name}</div>
+        <div class="food-desc">${f.desc}</div>
+        <div class="food-footer">
+          <span class="food-price">₹${f.price}</span>
+          <button class="add-btn" onclick="addToCart(${f.id},this)" title="Add to cart">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+renderMenu();
+
+function filterMenu(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenu(cat);
+}
+
+// ── CART ──
+function addToCart(id, btn) {
+  const food = foods.find(f=>f.id===id);
+  const existing = cart.find(c=>c.id===id);
+  if(existing) existing.qty++; else cart.push({...food, qty:1});
+  currentFood = food;
+
+  btn.textContent = '✓';
+  btn.classList.add('added');
+  setTimeout(()=>{ btn.textContent='+'; btn.classList.remove('added'); }, 1500);
+
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  document.getElementById('toast-title').textContent = `${food.emoji} ${food.name} added!`;
+  document.getElementById('toast-sub').textContent = `Cart total: ₹${total} + ₹10 delivery`;
+  const toast = document.getElementById('cart-toast');
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>toast.classList.remove('show'), 3500);
+}
+
+function openModal() {
+  document.getElementById('cart-toast').classList.remove('show');
+  if(cart.length===0){alert('Add some food first!');return;}
+  updateModalSummary();
+  document.getElementById('order-modal').classList.add('open');
+  document.getElementById('modal-form-area').style.display='';
+  document.getElementById('success-msg').classList.remove('show');
+}
+function closeModal() { document.getElementById('order-modal').classList.remove('open'); }
+document.getElementById('order-modal').addEventListener('click', e => { if(e.target===e.currentTarget)closeModal(); });
+
+function updateModalSummary() {
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const items = cart.map(c=>`<div class="row"><span>${c.emoji} ${c.name} ×${c.qty}</span><span>₹${c.price*c.qty}</span></div>`).join('');
+  document.getElementById('modal-summary').innerHTML = `
+    ${items}
+    <div class="row"><span>Delivery Fee</span><span>₹10</span></div>
+    <div class="row"><span>Campus Fund</span><span>₹5</span></div>
+    <div class="row total"><span>Total Payable</span><span>₹${total+10}</span></div>
+  `;
+}
+
+function confirmOrder() {
+  const name = document.getElementById('m-name').value.trim();
+  const loc = document.getElementById('m-loc').value;
+  const room = document.getElementById('m-room').value.trim();
+  if(!name){alert('Please enter your name.');return;}
+  if(!loc){alert('Please select a delivery location.');return;}
+  if(!room){alert('Please enter room/block number.');return;}
+
+  const eta = loc==='hostel' ? '15–25 mins' : '20–30 mins';
+  document.getElementById('eta-time').textContent = eta;
+  document.getElementById('modal-form-area').style.display='none';
+  document.getElementById('success-msg').classList.add('show');
+  cart.length = 0;
+}
+
+// ── AI RECOMMENDATION ──
+function getAiRec() {
+  const input = document.getElementById('ai-input').value.toLowerCase().trim();
+  if(!input){ alert('Please type something first!'); return; }
+  const resp = document.getElementById('ai-response');
+  const text = document.getElementById('ai-text');
+  resp.classList.add('visible');
+  text.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  setTimeout(() => {
+    let rec = aiRecs.default;
+    if(/health|diet|light|fit|salad|lean/.test(input)) rec = aiRecs.healthy;
+    else if(/hungry|starv|meal|heavy|full/.test(input)) rec = aiRecs.hungry;
+    else if(/tired|energy|sleep|boost/.test(input)) rec = aiRecs.tired;
+    else if(/rain|cold|cosy|warm|weather/.test(input)) rec = aiRecs.rainy;
+    else if(/study|exam|focus|brain|night/.test(input)) rec = aiRecs.study;
+    else if(/quick|fast|short|break|busy/.test(input)) rec = aiRecs.quick;
+    text.innerHTML = '💡 ' + rec.replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--cyan)">$1</strong>');
+  }, 1400);
+}
+
+// Enter key for AI
+document.getElementById('ai-input').addEventListener('keydown', e => {
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); getAiRec(); }
+});
+
+// ── CONTACT ──
+function sendMsg() {
+  const n = document.getElementById('cf-name').value.trim();
+  const e = document.getElementById('cf-email').value.trim();
+  const m = document.getElementById('cf-msg').value.trim();
+  if(!n||!e||!m){ alert('Please fill all fields.'); return; }
+  alert('✅ Message sent! We\'ll get back to you soon.');
+  document.getElementById('cf-name').value='';
+  document.getElementById('cf-email').value='';
+  document.getElementById('cf-msg').value='';
+}
+</script>
+<script>
+
+async function orderFood(itemName, itemPrice) {
+
+  const response = await fetch(
+    "http://localhost:3000/order",
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        item: {
+          name: itemName,
+          price: itemPrice
+        },
+
+        delivery: true
+      })
+
+    }
+  );
+
+  const data = await response.json();
+
+  alert(
+    data.message +
+    "\nToken: " + data.token +
+    "\nTotal: ₹" + data.total
+  );
+
+}
+
+async function askAI() {
+
+  const input =
+    document.getElementById("aiInput").value;
+
+  const response = await fetch(
+    "http://localhost:3000/ai",
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        message: input
+      })
+
+    }
+  );
+
+  const data = await response.json();
+
+  document.getElementById(
+    "aiOutput"
+  ).innerText = data.reply;
+
+}
+
+</script>
+</body>
+</html>

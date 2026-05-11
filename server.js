@@ -1,0 +1,92 @@
+let orders = [];
+import express from "express";
+import cors from "cors";
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const menu = [
+  { name: "Burger", price: 50 },
+  { name: "Pizza", price: 120 },
+  { name: "Sandwich", price: 40 },
+  { name: "Coffee", price: 30 }
+];
+
+app.get("/menu", (req, res) => {
+  res.json(menu);
+});
+app.post("/order", (req, res) => {
+
+  const {
+    item,
+    delivery,
+    username
+  } = req.body;
+
+  let total = item.price;
+
+  if (delivery) {
+    total += 10;
+  }
+
+  const token =
+    Math.floor(Math.random() * 1000);
+
+  const orderData = {
+    username,
+    item: item.name,
+    total,
+    token
+  };
+
+  orders.push(orderData);
+
+  res.json({
+    success: true,
+    message: "Order placed successfully",
+    token,
+    total
+  });
+
+});
+app.get("/admin-orders", (req, res) => {
+
+  res.json(orders);
+
+});
+app.post("/ai", (req, res) => {
+
+  const { message } = req.body;
+
+  let reply = "";
+
+  if (
+    message.toLowerCase().includes("healthy")
+  ) {
+    reply =
+      "Try sandwich and juice combo.";
+  }
+
+  else if (
+    message.toLowerCase().includes("study")
+  ) {
+    reply =
+      "Coffee and burger combo is good.";
+  }
+
+  else {
+    reply =
+      "Try pizza and cold coffee.";
+  }
+
+  res.json({
+    reply: reply
+  });
+
+});
+
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
+});

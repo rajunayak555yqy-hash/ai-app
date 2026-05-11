@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Admin Panel</title>
+
+  <style>
+
+    body {
+      font-family: Arial;
+      background: #111827;
+      color: white;
+      padding: 20px;
+    }
+
+    .order {
+      background: #1f2937;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<h1>Canteen Orders</h1>
+
+<div id="orders"></div>
+
+<script>
+
+async function loadOrders() {
+
+  const response = await fetch(
+    "http://localhost:3000/admin-orders"
+  );
+
+  const data = await response.json();
+
+  let html = "";
+
+  data.forEach(order => {
+
+    html += `
+
+    <div class="order">
+
+      <h3>${order.username}</h3>
+
+      <p>Food: ${order.item}</p>
+
+      <p>Total: ₹${order.total}</p>
+
+      <p>Token: ${order.token}</p>
+
+    </div>
+
+    `;
+
+  });
+
+  document.getElementById(
+    "orders"
+  ).innerHTML = html;
+
+}
+
+loadOrders();
+
+</script>
+
+</body>
+</html>
