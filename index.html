@@ -1364,58 +1364,50 @@ function sendMsg() {
 }
   function login(){
 
-  const role =
-    document.getElementById("role").value;
+  const role = document.getElementById("role").value;
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const error = document.getElementById("error");
 
-  const username =
-    document.getElementById("username").value;
-
-  const password =
-    document.getElementById("password").value;
-
-  // STUDENT
+  // ADMIN LOGIN
   if(
-      role === "student" &&
-      username === "student" &&
-      password === "student123"
-    ){
-
-      document.getElementById(
-        "loginOverlay"
-      ).style.display = "none";
+    role === "admin" &&
+    username === "pritam" &&
+    password === "123456"
+  ){
+    error.innerText = "";
+    alert("Welcome Admin");
+    document.getElementById("loginOverlay").style.display = "none";
   }
 
-  // FACULTY
+  // STUDENT LOGIN
   else if(
-      role === "faculty" &&
-      username === "faculty" &&
-      password === "faculty123"
-    ){
-
-      document.getElementById(
-        "loginOverlay"
-      ).style.display = "none";
+    role === "student" &&
+    username === "vignesh" &&
+    password === "2007"
+  ){
+    error.innerText = "";
+    alert("Welcome Student");
+    document.getElementById("loginOverlay").style.display = "none";
   }
 
-  // ADMIN
+  // FACULTY LOGIN
   else if(
-      role === "admin" &&
-      username === "admin" &&
-      password === "admin123"
-    ){
-
-      window.location.href =
-      "admin.html";
+    role === "faculty" &&
+    username === "vasudevan" &&
+    password === "123456"
+  ){
+    error.innerText = "";
+    alert("Welcome Faculty");
+    document.getElementById("loginOverlay").style.display = "none";
   }
 
   else{
-
-      document.getElementById(
-        "error"
-      ).innerHTML =
-      "Invalid Credentials";
+    error.innerText = "Invalid Credentials";
   }
 }
+  
+
 </script>
 <script>
 
