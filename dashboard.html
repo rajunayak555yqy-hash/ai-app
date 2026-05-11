@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Student Dashboard</title>
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:Arial;
+            background:#f2f2f2;
+        }
+
+        /* NAVBAR */
+
+        .navbar{
+            background:#111;
+            padding:15px;
+        }
+
+        .navbar button{
+            padding:10px 15px;
+            margin-right:10px;
+            border:none;
+            border-radius:5px;
+            background:#007bff;
+            color:white;
+            cursor:pointer;
+            font-size:15px;
+        }
+
+        .navbar button:hover{
+            background:#0056b3;
+        }
+
+        /* MAIN CONTENT */
+
+        .container{
+            padding:20px;
+        }
+
+        h1,h2{
+            color:#333;
+        }
+
+        /* PRODUCTS */
+
+        .product{
+            background:white;
+            padding:15px;
+            margin-bottom:15px;
+            border-radius:10px;
+            box-shadow:0px 0px 5px gray;
+        }
+
+        .product button{
+            padding:10px;
+            background:green;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        .product button:hover{
+            background:darkgreen;
+        }
+
+        /* CART */
+
+        #cartSection,
+        #paymentSection{
+            display:none;
+        }
+
+        ul{
+            list-style:none;
+            padding:0;
+        }
+
+        li{
+            background:white;
+            padding:10px;
+            margin-bottom:10px;
+            border-radius:5px;
+        }
+
+        /* TABLE */
+
+        table{
+            width:100%;
+            background:white;
+            border-collapse:collapse;
+        }
+
+        table, th, td{
+            border:1px solid gray;
+        }
+
+        th, td{
+            padding:10px;
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <div class="navbar">
+
+        <button onclick="showHome()">Home</button>
+
+        <button onclick="showCart()">Cart</button>
+
+        <button onclick="showPayments()">Payment History</button>
+
+        <button onclick="logout()">Logout</button>
+
+    </div>
+
+    <!-- MAIN CONTAINER -->
+
+    <div class="container">
+
+        <!-- HOME SECTION -->
+
+        <div id="homeSection">
+
+            <h1>Welcome Student</h1>
+
+            <p>Select products to add into cart</p>
+
+            <!-- PRODUCT 1 -->
+
+            <div class="product">
+
+                <h2>Notebook</h2>
+
+                <p>Price: ₹100</p>
+
+                <button onclick="addToCart('Notebook',100)">
+                    Add to Cart
+                </button>
+
+            </div>
+
+            <!-- PRODUCT 2 -->
+
+            <div class="product">
+
+                <h2>Pen</h2>
+
+                <p>Price: ₹20</p>
+
+                <button onclick="addToCart('Pen',20)">
+                    Add to Cart
+                </button>
+
+            </div>
+
+            <!-- PRODUCT 3 -->
+
+            <div class="product">
+
+                <h2>Bag</h2>
+
+                <p>Price: ₹500</p>
+
+                <button onclick="addToCart('Bag',500)">
+                    Add to Cart
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- CART SECTION -->
+
+        <div id="cartSection">
+
+            <h2>Your Cart</h2>
+
+            <ul id="cartItems">
+
+            </ul>
+
+            <h3 id="totalAmount">
+                Total: ₹0
+            </h3>
+
+        </div>
+
+        <!-- PAYMENT HISTORY -->
+
+        <div id="paymentSection">
+
+            <h2>Payment History</h2>
+
+            <table>
+
+                <tr>
+                    <th>Order ID</th>
+                    <th>Item</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+
+                <tr>
+                    <td>#101</td>
+                    <td>Notebook</td>
+                    <td>₹100</td>
+                    <td>Paid</td>
+                </tr>
+
+                <tr>
+                    <td>#102</td>
+                    <td>Bag</td>
+                    <td>₹500</td>
+                    <td>Paid</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        let total = 0;
+
+        /* SHOW HOME */
+
+        function showHome(){
+
+            document.getElementById("homeSection").style.display = "block";
+
+            document.getElementById("cartSection").style.display = "none";
+
+            document.getElementById("paymentSection").style.display = "none";
+        }
+
+        /* SHOW CART */
+
+        function showCart(){
+
+            document.getElementById("homeSection").style.display = "none";
+
+            document.getElementById("cartSection").style.display = "block";
+
+            document.getElementById("paymentSection").style.display = "none";
+        }
+
+        /* SHOW PAYMENTS */
+
+        function showPayments(){
+
+            document.getElementById("homeSection").style.display = "none";
+
+            document.getElementById("cartSection").style.display = "none";
+
+            document.getElementById("paymentSection").style.display = "block";
+        }
+
+        /* ADD TO CART */
+
+        function addToCart(item, price){
+
+            let cartItems =
+                document.getElementById("cartItems");
+
+            let li = document.createElement("li");
+
+            li.innerHTML =
+                item + " - ₹" + price;
+
+            cartItems.appendChild(li);
+
+            total = total + price;
+
+            document.getElementById("totalAmount")
+            .innerHTML =
+                "Total: ₹" + total;
+        }
+
+        /* LOGOUT */
+
+        function logout(){
+
+            alert("Logout Successful");
+
+            window.location.href = "login.html";
+        }
+
+    </script>
+
+</body>
+
+</html>
