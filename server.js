@@ -13,7 +13,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-
 const menu = [
   { name: "Burger", price: 50 },
   { name: "Pizza", price: 120 },
