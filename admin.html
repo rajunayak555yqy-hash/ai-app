@@ -503,6 +503,10 @@ function getOrders(){
         function updateStatus(index,status){
 
             orders[index].status = status;
+            localStorage.setItem(
+        "campusbite_orders",
+        JSON.stringify(orders)
+                );
 
             loadOrders();
         }
