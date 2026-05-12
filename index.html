@@ -1366,6 +1366,52 @@ function confirmOrder() {
 
     cart.length = 0;
 }
+
+    // SAVE ORDERS FOR ADMIN PORTAL
+
+    let orders =
+    JSON.parse(
+        localStorage.getItem("campusbite_orders")
+    ) || [];
+
+    const newOrder = {
+
+        username: name,
+
+        item:
+            cart.map(item => item.name).join(", "),
+
+        total:
+            cart.reduce(
+                (sum,item)=>sum+item.price,
+                0
+            ) + 10,
+
+        token:
+            "A" + Math.floor(
+                100 + Math.random() * 900
+            ),
+
+        status:"Pending"
+    };
+
+    orders.push(newOrder);
+
+    localStorage.setItem(
+        "campusbite_orders",
+        JSON.stringify(orders)
+    );
+
+    const eta = loc==='hostel'
+        ? '15-25 mins'
+        : '20-30 mins';
+
+    document.getElementById('eta-time').textContent = eta;
+    document.getElementById('modal-form-area').style.display='none';
+    document.getElementById('success-msg').classList.add('show');
+
+    cart.length = 0;
+}
 }
 
 // ── AI RECOMMENDATION ──
