@@ -1,76 +1,623 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Admin Panel</title>
 
-  <style>
+    <meta charset="UTF-8">
 
-    body {
-      font-family: Arial;
-      background: #111827;
-      color: white;
-      padding: 20px;
-    }
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    .order {
-      background: #1f2937;
-      padding: 15px;
-      margin-top: 10px;
-      border-radius: 10px;
-    }
+    <title>CampusBite AI - Chef Admin Portal</title>
 
-  </style>
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial, sans-serif;
+            background:#0f172a;
+            color:white;
+            overflow-x:hidden;
+        }
+
+        /* NAVBAR */
+
+        .navbar{
+            width:100%;
+            padding:20px 50px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            background:rgba(255,255,255,0.03);
+            backdrop-filter:blur(10px);
+            border-bottom:1px solid rgba(255,255,255,0.1);
+            position:sticky;
+            top:0;
+            z-index:1000;
+        }
+
+        .logo{
+            font-size:28px;
+            font-weight:bold;
+            color:#00e5ff;
+        }
+
+        .nav-links{
+            display:flex;
+            gap:20px;
+            align-items:center;
+        }
+
+        .nav-links a{
+            text-decoration:none;
+            color:white;
+            font-weight:bold;
+        }
+
+        .logout-btn{
+            padding:10px 20px;
+            border:none;
+            border-radius:25px;
+            background:red;
+            color:white;
+            cursor:pointer;
+            font-weight:bold;
+        }
+
+        /* HERO */
+
+        .hero{
+            padding:40px;
+        }
+
+        .hero h1{
+            font-size:55px;
+            margin-top:20px;
+            color:white;
+        }
+
+        .hero p{
+            margin-top:10px;
+            color:#cbd5e1;
+        }
+
+        /* DASHBOARD */
+
+        .dashboard{
+            display:flex;
+            gap:20px;
+            padding:20px 40px;
+            flex-wrap:wrap;
+        }
+
+        .dashboard-card{
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(0,255,255,0.2);
+            backdrop-filter:blur(10px);
+            padding:25px;
+            border-radius:20px;
+            width:250px;
+            box-shadow:0 0 20px rgba(0,255,255,0.2);
+        }
+
+        .dashboard-card h3{
+            color:#cbd5e1;
+        }
+
+        .dashboard-card h1{
+            color:#00ffff;
+            margin-top:10px;
+            font-size:40px;
+        }
+
+        /* SEARCH */
+
+        .search-box{
+            padding:20px 40px;
+        }
+
+        .search-box input{
+            width:350px;
+            padding:15px;
+            border:none;
+            border-radius:15px;
+            background:#1e293b;
+            color:white;
+            font-size:16px;
+        }
+
+        /* LIVE ORDERS */
+
+        .live-orders{
+            padding:20px 40px;
+        }
+
+        .live-orders h1{
+            margin-bottom:20px;
+        }
+
+        .orders-grid{
+            display:grid;
+            grid-template-columns:
+            repeat(auto-fit,minmax(320px,1fr));
+            gap:20px;
+        }
+
+        .order-card{
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(0,255,255,0.15);
+            border-radius:20px;
+            padding:25px;
+            box-shadow:0 0 15px rgba(0,255,255,0.15);
+            transition:0.3s;
+        }
+
+        .order-card:hover{
+            transform:translateY(-5px);
+        }
+
+        .order-card h2{
+            color:#00ffff;
+            margin-bottom:10px;
+        }
+
+        .order-card p{
+            margin-top:8px;
+            color:#e2e8f0;
+        }
+
+        /* STATUS */
+
+        .status{
+            display:inline-block;
+            padding:8px 15px;
+            border-radius:20px;
+            margin-top:15px;
+            font-weight:bold;
+            font-size:14px;
+        }
+
+        .pending{
+            background:orange;
+            color:black;
+        }
+
+        .accepted{
+            background:#00bfff;
+        }
+
+        .preparing{
+            background:#007bff;
+        }
+
+        .ready{
+            background:#00ff99;
+            color:black;
+        }
+
+        .rejected{
+            background:red;
+        }
+
+        /* BUTTONS */
+
+        .btn-group{
+            margin-top:20px;
+        }
+
+        .action-btn{
+            margin-top:10px;
+            margin-right:10px;
+            padding:10px 15px;
+            border:none;
+            border-radius:10px;
+            cursor:pointer;
+            font-weight:bold;
+        }
+
+        .accept-btn{
+            background:#00ff99;
+            color:black;
+        }
+
+        .prepare-btn{
+            background:#007bff;
+            color:white;
+        }
+
+        .ready-btn{
+            background:orange;
+            color:black;
+        }
+
+        .reject-btn{
+            background:red;
+            color:white;
+        }
+
+        /* RESPONSIVE */
+
+        @media(max-width:768px){
+
+            .navbar{
+                flex-direction:column;
+                gap:20px;
+            }
+
+            .hero h1{
+                font-size:40px;
+            }
+
+            .search-box input{
+                width:100%;
+            }
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-<h1>Canteen Orders</h1>
+    <!-- NAVBAR -->
 
-<div id="orders"></div>
+    <div class="navbar">
 
-<script>
+        <div class="logo">
+            CampusBite AI
+        </div>
 
-async function loadOrders() {
+        <div class="nav-links">
 
-  const response = await fetch(
-    "http://localhost:3000/admin-orders"
-  );
+            <a href="#">Home</a>
 
-  const data = await response.json();
+            <a href="#">Orders</a>
 
-  let html = "";
+            <a href="#">Kitchen</a>
 
-  data.forEach(order => {
+            <a href="#">Analytics</a>
 
-    html += `
+            <button class="logout-btn"
+                    onclick="logout()">
+                Logout
+            </button>
 
-    <div class="order">
-
-      <h3>${order.username}</h3>
-
-      <p>Food: ${order.item}</p>
-
-      <p>Total: ₹${order.total}</p>
-
-      <p>Token: ${order.token}</p>
+        </div>
 
     </div>
 
-    `;
+    <!-- HERO -->
 
-  });
+    <section class="hero">
 
-  document.getElementById(
-    "orders"
-  ).innerHTML = html;
+        <h1>Chef Admin Dashboard</h1>
 
-}
+        <p>
+            Manage live canteen orders,
+            preparation status and kitchen flow.
+        </p>
 
-loadOrders();
+    </section>
 
-</script>
+    <!-- DASHBOARD -->
+
+    <section class="dashboard">
+
+        <div class="dashboard-card">
+
+            <h3>Total Orders</h3>
+
+            <h1 id="totalOrders">0</h1>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <h3>Pending Orders</h3>
+
+            <h1 id="pendingOrders">0</h1>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <h3>Completed Orders</h3>
+
+            <h1 id="completedOrders">0</h1>
+
+        </div>
+
+    </section>
+
+    <!-- SEARCH -->
+
+    <section class="search-box">
+
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search customer..."
+            onkeyup="searchOrders()"
+        >
+
+    </section>
+
+    <!-- LIVE ORDERS -->
+
+    <section class="live-orders">
+
+        <h1>Live Kitchen Orders</h1>
+
+        <div class="orders-grid"
+             id="ordersContainer">
+
+        </div>
+
+    </section>
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        /* SAMPLE ORDERS */
+
+        let orders = [
+
+            {
+                username:"Rahul",
+                item:"Veg Pizza",
+                total:80,
+                token:"A101",
+                status:"Pending"
+            },
+
+            {
+                username:"Aman",
+                item:"Classic Burger",
+                total:60,
+                token:"A102",
+                status:"Preparing"
+            },
+
+            {
+                username:"Priya",
+                item:"Fresh Juice",
+                total:40,
+                token:"A103",
+                status:"Ready"
+            },
+
+            {
+                username:"Kiran",
+                item:"Club Sandwich",
+                total:50,
+                token:"A104",
+                status:"Accepted"
+            }
+
+        ];
+
+        /* LOAD ORDERS */
+
+        function loadOrders(){
+
+            let html = "";
+
+            let pending = 0;
+            let completed = 0;
+
+            orders.forEach((order,index)=>{
+
+                if(order.status=="Pending"){
+                    pending++;
+                }
+
+                if(order.status=="Ready"){
+                    completed++;
+                }
+
+                let statusClass =
+                    order.status.toLowerCase();
+
+                html += `
+
+                <div class="order-card">
+
+                    <h2>${order.username}</h2>
+
+                    <p>
+                        <b>Food:</b>
+                        ${order.item}
+                    </p>
+
+                    <p>
+                        <b>Total:</b>
+                        ₹${order.total}
+                    </p>
+
+                    <p>
+                        <b>Token:</b>
+                        ${order.token}
+                    </p>
+
+                    <p>
+                        <b>Time:</b>
+                        ${new Date().toLocaleTimeString()}
+                    </p>
+
+                    <div class="status ${statusClass}">
+                        ${order.status}
+                    </div>
+
+                    <div class="btn-group">
+
+                        <button
+                            class="action-btn accept-btn"
+                            onclick=
+                            "updateStatus(${index},
+                            'Accepted')">
+
+                            Accept
+
+                        </button>
+
+                        <button
+                            class="action-btn prepare-btn"
+                            onclick=
+                            "updateStatus(${index},
+                            'Preparing')">
+
+                            Preparing
+
+                        </button>
+
+                        <button
+                            class="action-btn ready-btn"
+                            onclick=
+                            "updateStatus(${index},
+                            'Ready')">
+
+                            Ready
+
+                        </button>
+
+                        <button
+                            class="action-btn reject-btn"
+                            onclick=
+                            "updateStatus(${index},
+                            'Rejected')">
+
+                            Reject
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                `;
+            });
+
+            document.getElementById(
+                "ordersContainer"
+            ).innerHTML = html;
+
+            document.getElementById(
+                "totalOrders"
+            ).innerHTML = orders.length;
+
+            document.getElementById(
+                "pendingOrders"
+            ).innerHTML = pending;
+
+            document.getElementById(
+                "completedOrders"
+            ).innerHTML = completed;
+        }
+
+        /* UPDATE STATUS */
+
+        function updateStatus(index,status){
+
+            orders[index].status = status;
+
+            loadOrders();
+        }
+
+        /* SEARCH */
+
+        function searchOrders(){
+
+            let searchText =
+                document.getElementById(
+                    "searchInput"
+                ).value.toLowerCase();
+
+            let filteredOrders =
+                orders.filter(order =>
+
+                    order.username
+                    .toLowerCase()
+                    .includes(searchText)
+
+                );
+
+            displayFiltered(filteredOrders);
+        }
+
+        /* DISPLAY FILTERED */
+
+        function displayFiltered(filteredOrders){
+
+            let html = "";
+
+            filteredOrders.forEach((order,index)=>{
+
+                let statusClass =
+                    order.status.toLowerCase();
+
+                html += `
+
+                <div class="order-card">
+
+                    <h2>${order.username}</h2>
+
+                    <p>
+                        <b>Food:</b>
+                        ${order.item}
+                    </p>
+
+                    <p>
+                        <b>Total:</b>
+                        ₹${order.total}
+                    </p>
+
+                    <p>
+                        <b>Token:</b>
+                        ${order.token}
+                    </p>
+
+                    <div class="status ${statusClass}">
+                        ${order.status}
+                    </div>
+
+                </div>
+
+                `;
+            });
+
+            document.getElementById(
+                "ordersContainer"
+            ).innerHTML = html;
+        }
+
+        /* LOGOUT */
+
+        function logout(){
+
+            alert("Logged Out Successfully");
+
+            window.location.href =
+                "index.html";
+        }
+
+        /* AUTO REFRESH */
+
+        setInterval(()=>{
+
+            loadOrders();
+
+        },5000);
+
+        loadOrders();
+
+    </script>
 
 </body>
+
 </html>
