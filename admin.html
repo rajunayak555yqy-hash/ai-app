@@ -366,12 +366,16 @@
 
         /* SAMPLE ORDERS */
 
-        let orders = [
+        let orders = [];
 
-            let orders =
-JSON.parse(
-    localStorage.getItem("campusbite_orders")
-) || [];
+function getOrders(){
+
+    orders =
+    JSON.parse(
+        localStorage.getItem("campusbite_orders")
+    ) || [];
+
+}
         
 
         /* LOAD ORDERS */
