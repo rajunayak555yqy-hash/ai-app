@@ -368,39 +368,11 @@
 
         let orders = [
 
-            {
-                username:"Rahul",
-                item:"Veg Pizza",
-                total:80,
-                token:"A101",
-                status:"Pending"
-            },
-
-            {
-                username:"Aman",
-                item:"Classic Burger",
-                total:60,
-                token:"A102",
-                status:"Preparing"
-            },
-
-            {
-                username:"Priya",
-                item:"Fresh Juice",
-                total:40,
-                token:"A103",
-                status:"Ready"
-            },
-
-            {
-                username:"Kiran",
-                item:"Club Sandwich",
-                total:50,
-                token:"A104",
-                status:"Accepted"
-            }
-
-        ];
+            let orders =
+JSON.parse(
+    localStorage.getItem("campusbite_orders")
+) || [];
+        
 
         /* LOAD ORDERS */
 
